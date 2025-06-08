@@ -1,9 +1,10 @@
 name: CI/CD Demo
 
 on:
-  push:
-    branches:
-      - master
+  push:          # la accion que gatillara este pipeline
+    branches:    # se gatillara a esta rama
+      - main
+      - dev
 
 permissions:
   id-token: write
@@ -11,52 +12,52 @@ permissions:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # es runner  en gitlab -> en jenkins parace que es en el mismo server donde se ejecuta
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3  # que actions vas a usar, con esto your workflow can access al repo (clona) y luego push (definido arriba en on) https://github.com/actions/checkout
       
       - name: install dependencies
         run: |
           pip3 install -r requirements.txt
       
-      - name: run tests
+      - name: run tests   # antes de construir el codigo realizas test
         run: |
           pytest test/test.py
       
-      - name: build docker image
-        run: |
-          docker build -t davejfranco/python-fastapi-demo:${{ github.sha }} .
+  #     - name: build docker image
+  #       run: |
+  #         docker build -t edw1/faapi:${{ github.sha }} .
       
-      - name: docker login
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+  #     - name: docker login
+  #       uses: docker/login-action@v1
+  #       with:
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_PASSWORD }}
       
-      - name: push docker image
-        run: |
-          docker push davejfranco/python-fastapi-demo:${{ github.sha }}
+  #     - name: push docker image
+  #       run: |
+  #         docker push edw1/faapi:${{ github.sha }}
 
-    outputs:
-      image: davejfranco/python-fastapi-demo:${{ github.sha }}
+  #   outputs:
+  #     image: edw1/faapi:${{ github.sha }}
   
-  cd:
-    needs: ci
-    runs-on: ubuntu-latest
-    steps:
+  # cd:
+  #   needs: ci
+  #   runs-on: ubuntu-latest
+  #   steps:
 
-      - name: AWS authentication
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
-          role-duration-seconds: 1200
-          role-session-name: ${{ github.sha }}
-          aws-region: us-east-1
+  #     - name: AWS authentication
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+  #         role-duration-seconds: 1200
+  #         role-session-name: ${{ github.sha }}
+  #         aws-region: us-east-1
       
-      - name: update deployment
-        run: |
-          aws eks update-kubeconfig --name ${{ secrets.CLUSTER_NAME }} --region us-east-1
-          kubectl set image deployment/python-fastapi-deployment api=davejfranco/python-fastapi-demo:${{ needs.ci.outputs.image }} -n app
+  #     - name: update deployment
+  #       run: |
+  #         aws eks update-kubeconfig --name ${{ secrets.CLUSTER_NAME }} --region us-east-1
+  #         kubectl set image deployment/python-fastapi-deployment api=edw1/faapi:${{ needs.ci.outputs.image }} -n app
         
   
