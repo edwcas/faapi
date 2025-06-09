@@ -58,7 +58,7 @@ jobs:
           envs: DOCKER_IMAGE # usamos la env definida antes
           script: |  # permite ejecutar comandos ssh linux y no podra entender variables de githubactions por lo que creamos env
             echo "descargando la nueva version"
-            docker pull $(DOCKER_IMAGE)
+            docker pull $DOCKER_IMAGE
             echo "stop current version"
             sleep 1
             API=$(docker ps -q -f name=api)

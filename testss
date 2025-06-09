@@ -1,0 +1,4 @@
+#!/bin/bash
+ANIMAL='perro'
+CAN='firulais'
+echo "el $ANIMAL  se llama $CAN"
