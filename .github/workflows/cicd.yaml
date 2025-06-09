@@ -36,12 +36,47 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       
       - name: push docker image
-        run: |
-          docker push edw1/appdemocopy:${{ github.sha }}
+        run: |  # Recordar DOCKER_USERNAME=edw1
+          docker push ${{ secrets.DOCKER_USERNAME }}/appdemocopy:${{ github.sha }}  
 
   #   outputs:
-  #     image: edw1/faapi:${{ github.sha }}
+  #     image: edw1/appdemocopy:${{ github.sha }}
   
+  cd:
+    needs: ci  # para que se ejecute luego de ci y no en parallelo
+    runs-on: ubuntu-latest  
+
+    steps:
+      - name: coneccion a los servers
+        uses: appleboy/ssh-action@v1
+        env:
+          DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/appdemocopy:${{ github.sha }} 
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          envs: DOCKER_IMAGE # usamos la env definida antes
+          script: |  # permite ejecutar comandos ssh linux y no podra entender variables de githubactions por lo que creamos env
+            echo "descargando la nueva version"
+            docker pull $(DOCKER_IMAGE)
+            echo "stop current version"
+            sleep 1
+            API=$(docker ps -q -f name=api)
+            if [ ! -z $API ] then 
+             docker stop $API
+             docker rm $API
+            fi 
+            docker run -d --name newapp -p 80:8080 $DOCKER_IMAGE
+                
+      - name: check service ok
+        env:
+          ENPOINT: ${{ secrets.ENPOINT }}
+        run: |
+          RESPONSE=$(curl -IXGET -s http://${{ secrets.ENPOINT }}:80/status | head -n 1)
+          if [ $RESPONSE -ne "200" ] then
+            echo "service no ok"
+          fi
+          echo "servicio ok normalemnte se envia por correo" 
   # cd:
   #   needs: ci
   #   runs-on: ubuntu-latest
