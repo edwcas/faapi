@@ -61,8 +61,9 @@ jobs:
             docker pull $DOCKER_IMAGE
             echo "stop current version"
             sleep 1
-            API=$(docker ps -q -f name=api)
-            if [ ! -z $API ] then 
+            API=$(docker ps -q -f name=namecontainer)
+            if [ ! -z $API ] 
+            then 
              docker stop $API
              docker rm $API
             fi 
@@ -73,7 +74,8 @@ jobs:
           ENPOINT: ${{ secrets.ENPOINT }}
         run: |
           RESPONSE=$(curl -IXGET -s http://${{ secrets.ENPOINT }}:80/status | head -n 1)
-          if [ $RESPONSE -ne "200" ] then
+          if [ $RESPONSE -ne "200" ] 
+          then
             echo "service no ok"
           fi
           echo "servicio ok normalemnte se envia por correo" 

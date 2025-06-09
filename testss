@@ -1,4 +1,11 @@
-#!/bin/bash
-ANIMAL='perro'
-CAN='firulais'
-echo "el $ANIMAL  se llama $CAN"
+#! /bin/sh
+a=
+b=
+
+if [ $a -lt $b ] 
+then
+        echo "a is less than b"
+else
+        echo "a is greater than b"
+fi
+echo no hay numeros
